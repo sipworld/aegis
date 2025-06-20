@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CryptoVoIP Aegis Dashboard</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0; 
+      padding: 2rem; 
+      background: #f5f5f5;
+    }
+    
+    #login, #dashboard { display: none; }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 2rem;
+    }
+    
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .login-container h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #333;
+    }
+    
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .login-container button:hover {
+      background: #0056b3;
+    }
+    
+    .tabs {
+      border-bottom: 2px solid #eee;
+      margin-bottom: 2rem;
+    }
+    
+    .tab { 
+      margin-right: 20px; 
+      cursor: pointer; 
+      padding: 12px 24px; 
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab:hover {
+      color: #007bff;
+    }
+    
+    .tab.active { 
+      color: #007bff; 
+      border-bottom-color: #007bff;
+      font-weight: 600;
+    }
+    
+    .stream-group {
+      margin-bottom: 2rem;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .stream-group h3 {
+      margin: 0;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-bottom: 1px solid #eee;
+      color: #333;
+      display: flex;
+      align-items: center;
+    }
+    
+    .stream-content {
+      padding: 1rem;
+    }
+    
+    .video-container {
+      width: 100%;
+      background: #000;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    
+    .video-player {
+      width: 100%;
+      height: 500px;
+      background: #000;
+      border-radius: 4px;
+    }
+    
+    .recording-item {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .recording-item:hover {
+      background: #e9ecef;
+    }
+    
+    .recording-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .recording-name {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .recording-date {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .status-live {
+      background: #dc3545;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    .controls {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .control-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .play-btn {
+      background: #28a745;
+      color: white;
+    }
+    
+    .play-btn:hover {
+      background: #218838;
+    }
+    
+    .fullscreen-btn {
+      background: #6f42c1;
+      color: white;
+    }
+    
+    .fullscreen-btn:hover {
+      background: #5a2d91;
+    }
+    
+    .test-btn {
+      background: #17a2b8;
+      color: white;
+    }
+    
+    .test-btn:hover {
+      background: #138496;
+    }
+    
+    .error-message {
+      color: #dc3545;
+      padding: 1rem;
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+    }
+    
+    .no-content {
+      text-align: center;
+      padding: 2rem;
+      color: #999;
+      font-style: italic;
+    }
+    
+    .success-message {
+      color: #155724;
+      padding: 1rem;
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+    
+    /* Fullscreen styles */
+    .fullscreen-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .fullscreen-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    
+    .fullscreen-controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+    }
+    
+    .close-fullscreen {
+      background: rgba(255,255,255,0.8);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      color: #333;
+    }
+    
+    .close-fullscreen:hover {
+      background: rgba(255,255,255,1);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="login">
+    <div class="login-container">
+      <h2>CryptoVoIP Aegis Dashboard</h2>
+      <input type="text" id="user" placeholder="Username">
+      <input type="password" id="pass" placeholder="Password">
+      <button id="loginBtn">Login</button>
+    </div>
+  </div>
+
+  <div id="dashboard">
+    <div class="container">
+      <h2>CryptoVoIP Aegis Dashboard</h2>
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('recordings')">📹 Recordings</button>
+        <button class="tab" onclick="showTab('live')">🔴 Live Streams</button>
+      </div>
+      <div id="recordings">
+        <div class="loading">Loading recordings...</div>
+      </div>
+      <div id="live" style="display:none">
+        <div class="loading">Loading live streams...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen overlay -->
+  <div id="fullscreen-overlay" class="fullscreen-overlay">
+    <div class="fullscreen-controls">
+      <button class="close-fullscreen" onclick="exitFullscreen()">×</button>
+    </div>
+    <video id="fullscreen-video" class="fullscreen-video" controls></video>
+  </div>
+
+  <script>
+    const validUser = 'admin';
+    const validPass = 'aegis123';
+    let currentPlayers = [];
+    let hlsInstances = [];
+
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#recordings, #live').forEach(d => d.style.display = 'none');
+      document.getElementById(tab).style.display = 'block';
+      document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('active');
+      
+      // Stop all current HLS instances when switching tabs
+      hlsInstances.forEach(hls => {
+        try {
+          if (hls && hls.destroy) {
+            hls.destroy();
+          }
+        } catch (e) {
+          console.log('Error destroying HLS instance:', e);
+        }
+      });
+      hlsInstances = [];
+    }
+
+    function formatDate(timestamp) {
+      return new Date(timestamp * 1000).toLocaleString();
+    }
+
+    function loadHLS() {
+      return new Promise((resolve, reject) => {
+        if (window.Hls) {
+          resolve();
+          return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js';
+        script.onload = () => {
+          console.log('HLS.js loaded successfully');
+          resolve();
+        };
+        script.onerror = () => {
+          console.error('Failed to load HLS.js');
+          reject(new Error('HLS.js failed to load'));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    function createLivePlayer(streamId, container) {
+      const controlsDiv = document.createElement('div');
+      controlsDiv.className = 'controls';
+      controlsDiv.innerHTML = `
+        <button class="control-btn play-btn" onclick="playHLSStream('${streamId}')">
+          ▶️ Play Stream
+        </button>
+        <button class="control-btn fullscreen-btn" onclick="playFullscreen('${streamId}')">
+          ⛶ Fullscreen
+        </button>
+        <button class="control-btn test-btn" onclick="testStreamUrls('${streamId}')">
+          🔍 Test URLs
+        </button>
+      `;
+      
+      const playerDiv = document.createElement('div');
+      playerDiv.id = `player_${streamId}`;
+      playerDiv.className = 'video-container';
+      
+      const placeholder = document.createElement('div');
+      placeholder.className = 'video-player';
+      placeholder.style.display = 'flex';
+      placeholder.style.alignItems = 'center';
+      placeholder.style.justifyContent = 'center';
+      placeholder.style.color = 'white';
+      placeholder.style.flexDirection = 'column';
+      placeholder.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 20px;">📺</div>
+        <div style="font-size: 18px; margin-bottom: 10px;">Ready to play stream</div>
+        <div style="font-size: 14px; color: #ccc;">Stream ID: ${streamId}</div>
+      `;
+      
+      playerDiv.appendChild(placeholder);
+      
+      container.innerHTML = '';
+      container.appendChild(controlsDiv);
+      container.appendChild(playerDiv);
+    }
+
+    window.playHLSStream = async function(streamId) {
+      const playerDiv = document.getElementById(`player_${streamId}`);
+      if (!playerDiv) return;
+      
+      try {
+        if (!window.Hls) {
+          await loadHLS();
+        }
+        
+        const video = document.createElement('video');
+        video.controls = true;
+        video.className = 'video-player';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.autoplay = false;
+        video.muted = false;
+        
+        const hlsUrls = [
+          `http://media.cryptovoip.in:5080/LiveApp/streams/${streamId}.m3u8`,
+          `http://media.cryptovoip.in:5080/LiveApp/streams/${streamId}/playlist.m3u8`
+        ];
+        
+        let urlIndex = 0;
+        
+        function tryNextUrl() {
+          if (urlIndex >= hlsUrls.length) {
+            playerDiv.innerHTML = `
+              <div class="error-message">
+                <div style="font-size: 18px; margin-bottom: 10px;">❌ Stream Not Available</div>
+                <div>Could not load stream from any URL</div>
+                <div style="font-size: 12px; margin-top: 10px;">Check if stream is active</div>
+              </div>
+            `;
+            return;
+          }
+          
+          const hlsUrl = hlsUrls[urlIndex];
+          console.log(`Trying HLS URL: ${hlsUrl}`);
+          
+          if (window.Hls && Hls.isSupported()) {
+            const hls = new Hls({
+              enableWorker: false,
+              lowLatencyMode: true,
+              debug: false, // Disable debug to reduce console noise
+              backBufferLength: 90
+            });
+            
+            hls.loadSource(hlsUrl);
+            hls.attachMedia(video);
+            hlsInstances.push(hls);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              console.log("✅ HLS stream loaded successfully");
+              playerDiv.innerHTML = '';
+              playerDiv.appendChild(video);
+              
+              playerDiv.parentElement.insertAdjacentHTML('afterbegin', `
+                <div class="success-message">
+                  ✅ Stream connected successfully! Playing: ${streamId}
+                </div>
+              `);
+              
+              video.play().catch(e => {
+                console.log("Autoplay prevented - user can click play");
+              });
+            });
+            
+            hls.on(Hls.Events.ERROR, (event, data) => {
+              if (data.fatal) {
+                console.error(`HLS error for ${hlsUrl}:`, data.details);
+                urlIndex++;
+                setTimeout(tryNextUrl, 1000);
+              }
+            });
+          } else {
+            playerDiv.innerHTML = `
+              <div class="error-message">
+                ❌ HLS not supported in this browser
+              </div>
+            `;
+          }
+        }
+        
+        playerDiv.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">🔄 Connecting to stream...</div>';
+        tryNextUrl();
+        
+      } catch (error) {
+        console.error('Error playing HLS stream:', error);
+        playerDiv.innerHTML = `
+          <div class="error-message">
+            ❌ Error loading stream: ${error.message}
+          </div>
+        `;
+      }
+    };
+
+    window.playFullscreen = async function(streamId) {
+      try {
+        if (!window.Hls) {
+          await loadHLS();
+        }
+        
+        const overlay = document.getElementById('fullscreen-overlay');
+        const video = document.getElementById('fullscreen-video');
+        
+        const hlsUrl = `http://media.cryptovoip.in:5080/LiveApp/streams/${streamId}.m3u8`;
+        
+        if (window.Hls && Hls.isSupported()) {
+          const hls = new Hls({
+            enableWorker: false,
+            lowLatencyMode: true,
+            debug: false
+          });
+          
+          hls.loadSource(hlsUrl);
+          hls.attachMedia(video);
+          hlsInstances.push(hls);
+          
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            overlay.style.display = 'flex';
+            video.play().catch(e => console.log("Autoplay prevented"));
+          });
+          
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              alert('Error loading fullscreen stream');
+              overlay.style.display = 'none';
+            }
+          });
+        }
+      } catch (error) {
+        alert('Error opening fullscreen: ' + error.message);
+      }
+    };
+
+    window.exitFullscreen = function() {
+      const overlay = document.getElementById('fullscreen-overlay');
+      const video = document.getElementById('fullscreen-video');
+      
+      overlay.style.display = 'none';
+      video.pause();
+      video.src = '';
+    };
+
+    window.testStreamUrls = async function(streamId) {
+      const playerDiv = document.getElementById(`player_${streamId}`);
+      if (!playerDiv) return;
+      
+      const urls = [
+        { name: 'Primary HLS', url: `http://media.cryptovoip.in:5080/LiveApp/streams/${streamId}.m3u8` },
+        { name: 'Playlist HLS', url: `http://media.cryptovoip.in:5080/LiveApp/streams/${streamId}/playlist.m3u8` },
+        { name: 'Localhost HLS', url: `http://localhost:5080/LiveApp/streams/${streamId}.m3u8` },
+        { name: 'Play Page', url: `http://media.cryptovoip.in:5080/LiveApp/play.html?name=${streamId}` }
+      ];
+      
+      let results = '<div style="padding: 20px; background: #f8f9fa; border-radius: 4px;"><h4>Stream URL Test Results:</h4>';
+      
+      for (const urlTest of urls) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
+          const response = await fetch(urlTest.url, { 
+            method: 'HEAD',
+            signal: controller.signal,
+            mode: 'no-cors'
+          });
+          
+          clearTimeout(timeoutId);
+          results += `<div style="margin: 8px 0;"><strong>${urlTest.name}:</strong> ✅ Accessible</div>`;
+          
+        } catch (error) {
+          results += `<div style="margin: 8px 0;"><strong>${urlTest.name}:</strong> ❌ Failed</div>`;
+        }
+        
+        results += `<div style="font-size: 11px; color: #666; margin-bottom: 10px;">
+          <a href="${urlTest.url}" target="_blank" style="color: #007bff;">${urlTest.url}</a>
+        </div>`;
+      }
+      
+      results += '</div>';
+      playerDiv.innerHTML = results;
+    };
+
+    async function loadRecordings() {
+      try {
+        const response = await fetch('/recordings.json');
+        const recordings = await response.json();
+        const recDiv = document.getElementById('recordings');
+        
+        if (Object.keys(recordings).length === 0) {
+          recDiv.innerHTML = '<div class="no-content">No recordings found</div>';
+          return;
+        }
+        
+        recDiv.innerHTML = '';
+        
+        Object.entries(recordings).forEach(([streamName, files]) => {
+          const group = document.createElement('div');
+          group.className = 'stream-group';
+          
+          const header = document.createElement('h3');
+          header.innerHTML = `📹 ${streamName} (${files.length} recordings)`;
+          group.appendChild(header);
+          
+          const content = document.createElement('div');
+          content.className = 'stream-content';
+          
+          files.forEach(recording => {
+            const item = document.createElement('div');
+            item.className = 'recording-item';
+            
+            item.innerHTML = `
+              <div class="recording-info">
+                <div class="recording-name">${recording.filename}</div>
+                <div class="recording-date">${formatDate(recording.timestamp)}</div>
+              </div>
+            `;
+            
+            item.onclick = () => {
+              openRecordingModal(recording);
+            };
+            
+            content.appendChild(item);
+          });
+          
+          group.appendChild(content);
+          recDiv.appendChild(group);
+        });
+        
+      } catch (error) {
+        console.error('Error loading recordings:', error);
+        document.getElementById('recordings').innerHTML = 
+          '<div class="error-message">Error loading recordings</div>';
+      }
+    }
+
+    function openRecordingModal(recording) {
+      // Create modal overlay
+      const modal = document.createElement('div');
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.background = 'rgba(0,0,0,0.8)';
+      modal.style.zIndex = '1000';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.padding = '20px';
+      modal.style.boxSizing = 'border-box';
+      
+      // Create modal content
+      const modalContent = document.createElement('div');
+      modalContent.style.background = 'white';
+      modalContent.style.borderRadius = '12px';
+      modalContent.style.width = '90%';
+      modalContent.style.maxWidth = '900px';
+      modalContent.style.maxHeight = '90%';
+      modalContent.style.overflow = 'hidden';
+      modalContent.style.position = 'relative';
+      modalContent.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+      
+      // Create modal header
+      const header = document.createElement('div');
+      header.style.padding = '20px';
+      header.style.background = '#f8f9fa';
+      header.style.borderBottom = '1px solid #dee2e6';
+      header.style.display = 'flex';
+      header.style.justifyContent = 'space-between';
+      header.style.alignItems = 'center';
+      
+      header.innerHTML = `
+        <div>
+          <h3 style="margin: 0; color: #333;">${recording.filename}</h3>
+          <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">${formatDate(recording.timestamp)}</p>
+        </div>
+        <button onclick="closeRecordingModal()" 
+                style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;"
+                title="Close">×</button>
+      `;
+      
+      // Create controls
+      const controls = document.createElement('div');
+      controls.style.padding = '15px 20px';
+      controls.style.background = '#fff';
+      controls.style.borderBottom = '1px solid #dee2e6';
+      controls.style.display = 'flex';
+      controls.style.gap = '10px';
+      controls.style.flexWrap = 'wrap';
+      
+      controls.innerHTML = `
+        <button onclick="playRecordingInModal('${recording.mp4_url}', '${recording.filename}')" 
+                style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ▶️ Play Recording
+        </button>
+        <button onclick="window.open('${recording.mp4_url}', '_blank')" 
+                style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          🔗 Open in New Tab
+        </button>
+        <button onclick="playRecordingFullscreen('${recording.filename}', '${recording.mp4_url}')" 
+                style="padding: 8px 16px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ⛶ Open Fullscreen
+        </button>
+        <button onclick="testRecordingInModal('${recording.mp4_url}', '${recording.filename}')" 
+                style="padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          🔍 Test URL
+        </button>
+        <button onclick="downloadRecording('${recording.mp4_url}', '${recording.filename}')" 
+                style="padding: 8px 16px; background: #fd7e14; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          📥 Download
+        </button>
+      `;
+      
+      // Create video container
+      const videoContainer = document.createElement('div');
+      videoContainer.id = 'modal-video-container';
+      videoContainer.style.padding = '20px';
+      videoContainer.style.background = '#fff';
+      videoContainer.style.minHeight = '300px';
+      videoContainer.style.display = 'flex';
+      videoContainer.style.alignItems = 'center';
+      videoContainer.style.justifyContent = 'center';
+      videoContainer.style.background = '#f8f9fa';
+      
+      videoContainer.innerHTML = `
+        <div style="text-align: center; color: #666;">
+          <div style="font-size: 48px; margin-bottom: 15px;">📹</div>
+          <div style="font-size: 18px;">Click "Play Recording" to start playback</div>
+        </div>
+      `;
+      
+      // Assemble modal
+      modalContent.appendChild(header);
+      modalContent.appendChild(controls);
+      modalContent.appendChild(videoContainer);
+      modal.appendChild(modalContent);
+      
+      // Close on overlay click
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          closeRecordingModal();
+        }
+      };
+      
+      // Store modal reference and add to page
+      window.currentRecordingModal = modal;
+      document.body.appendChild(modal);
+    }
+
+    window.closeRecordingModal = function() {
+      if (window.currentRecordingModal) {
+        // Stop any playing video
+        const video = window.currentRecordingModal.querySelector('video');
+        if (video) {
+          video.pause();
+          video.src = '';
+        }
+        
+        // Remove modal
+        document.body.removeChild(window.currentRecordingModal);
+        window.currentRecordingModal = null;
+      }
+    };
+
+    window.playRecordingInModal = function(mp4Url, filename) {
+      const container = document.getElementById('modal-video-container');
+      if (!container) return;
+      
+      container.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">🔄 Loading recording...</div>';
+      
+      const video = document.createElement('video');
+      video.controls = true;
+      video.style.width = '100%';
+      video.style.maxHeight = '400px';
+      video.style.background = '#000';
+      video.style.borderRadius = '8px';
+      video.autoplay = false;
+      video.muted = false;
+      video.preload = 'metadata';
+      
+      let loadingTimeout;
+      let hasLoaded = false;
+      
+      video.addEventListener('loadstart', () => {
+        console.log('Recording load started');
+        clearTimeout(loadingTimeout);
+      });
+      
+      video.addEventListener('loadedmetadata', () => {
+        console.log("✅ Recording metadata loaded successfully");
+        hasLoaded = true;
+        clearTimeout(loadingTimeout);
+        
+        container.innerHTML = '';
+        container.appendChild(video);
+        
+        // Show success message
+        const successDiv = document.createElement('div');
+        successDiv.style.background = '#d4edda';
+        successDiv.style.color = '#155724';
+        successDiv.style.padding = '10px';
+        successDiv.style.borderRadius = '4px';
+        successDiv.style.marginBottom = '10px';
+        successDiv.style.border = '1px solid #c3e6cb';
+        successDiv.innerHTML = `✅ Recording loaded successfully! Duration: ${Math.round(video.duration)}s`;
+        
+        container.insertBefore(successDiv, video);
+        
+        setTimeout(() => {
+          if (successDiv.parentElement) {
+            successDiv.parentElement.removeChild(successDiv);
+          }
+        }, 3000);
+      });
+      
+      video.addEventListener('canplay', () => {
+        console.log('Recording ready to play');
+        if (!hasLoaded) {
+          hasLoaded = true;
+          clearTimeout(loadingTimeout);
+          
+          if (container.querySelector('video') !== video) {
+            container.innerHTML = '';
+            container.appendChild(video);
+          }
+        }
+      });
+      
+      video.addEventListener('error', (e) => {
+        console.error('Video playback error:', e);
+        clearTimeout(loadingTimeout);
+        
+        container.innerHTML = `
+          <div style="background: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; border: 1px solid #f5c6cb;">
+            <div style="font-size: 18px; margin-bottom: 10px;">❌ Failed to load recording in modal</div>
+            <div style="margin-bottom: 10px;">File: ${filename}</div>
+            <div style="font-size: 12px; color: #6c757d; margin-bottom: 15px;">
+              The file exists and is accessible, but there might be a browser compatibility issue.
+            </div>
+            <div style="margin: 15px 0;">
+              <button onclick="window.open('${mp4Url}', '_blank')" 
+                      style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                🔗 Open in New Tab
+              </button>
+              <button onclick="downloadRecording('${mp4Url}', '${filename}')" 
+                      style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                📥 Download File
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      
+      video.addEventListener('progress', () => {
+        console.log('Recording buffering...');
+      });
+      
+      // Set loading timeout (30 seconds)
+      loadingTimeout = setTimeout(() => {
+        if (!hasLoaded) {
+          console.log('Recording load timeout');
+          container.innerHTML = `
+            <div style="background: #fff3cd; color: #856404; padding: 20px; border-radius: 8px; border: 1px solid #ffeaa7;">
+              <div style="font-size: 18px; margin-bottom: 10px;">⏱️ Loading timeout</div>
+              <div style="margin-bottom: 10px;">File: ${filename}</div>
+              <div style="font-size: 12px; color: #6c757d; margin-bottom: 15px;">
+                The recording is taking too long to load in the modal. Try opening it directly.
+              </div>
+              <div style="margin: 15px 0;">
+                <button onclick="window.open('${mp4Url}', '_blank')" 
+                        style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                  🔗 Open in New Tab
+                </button>
+                <button onclick="playRecordingFullscreen('${filename}', '${mp4Url}')" 
+                        style="padding: 10px 20px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                  ⛶ Try Fullscreen
+                </button>
+                <button onclick="downloadRecording('${mp4Url}', '${filename}')" 
+                        style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                  📥 Download
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      }, 30000);
+      
+      // Set video source
+      video.src = mp4Url;
+    };
+
+    window.testRecordingInModal = function(mp4Url, filename) {
+      const container = document.getElementById('modal-video-container');
+      if (!container) return;
+      
+      container.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">🔄 Testing recording URLs...</div>';
+      
+      // Test multiple URL formats
+      const testUrls = [
+        { name: 'Original URL', url: mp4Url },
+        { name: 'Domain URL', url: mp4Url.replace('localhost:5080', 'media.cryptovoip.in:5080') },
+        { name: 'Direct Domain', url: `http://media.cryptovoip.in:5080/LiveApp/streams/${filename}` },
+        { name: 'Localhost', url: `http://localhost:5080/LiveApp/streams/${filename}` }
+      ];
+      
+      let results = '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px;"><h4>Recording URL Test Results:</h4>';
+      
+      Promise.all(testUrls.map(async (urlTest) => {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
+          const response = await fetch(urlTest.url, { 
+            method: 'HEAD',
+            signal: controller.signal,
+            mode: 'no-cors'
+          });
+          
+          clearTimeout(timeoutId);
+          return { ...urlTest, status: '✅ Accessible', success: true };
+          
+        } catch (error) {
+          let errorMsg = '❌ Failed';
+          if (error.name === 'AbortError') {
+            errorMsg = '⏱️ Timeout';
+          } else if (error.message.includes('Failed to fetch')) {
+            errorMsg = '❌ Connection Error';
+          }
+          return { ...urlTest, status: errorMsg, success: false };
+        }
+      })).then(testResults => {
+        results = '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px;"><h4>Recording URL Test Results:</h4>';
+        
+        testResults.forEach(result => {
+          const bgColor = result.success ? '#d4edda' : '#f8d7da';
+          const borderColor = result.success ? '#c3e6cb' : '#f5c6cb';
+          const textColor = result.success ? '#155724' : '#721c24';
+          
+          results += `
+            <div style="margin: 10px 0; padding: 10px; background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 4px;">
+              <div style="color: ${textColor}; font-weight: bold;">${result.name}: ${result.status}</div>
+              <div style="font-size: 11px; color: #666; word-break: break-all; margin-top: 5px;">
+                <a href="${result.url}" target="_blank" style="color: #007bff;">${result.url}</a>
+              </div>
+              ${result.success ? `
+                <div style="margin-top: 10px;">
+                  <button onclick="playRecordingInModal('${result.url}', '${filename}')" 
+                          style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    ▶️ Try This URL
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        });
+        
+        results += '</div>';
+        container.innerHTML = results;
+      });
+    };
+
+    window.downloadRecording = function(mp4Url, filename) {
+      const link = document.createElement('a');
+      link.href = mp4Url;
+      link.download = filename;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    window.playRecordingFullscreen = function(filename, mp4Url) {
+      const overlay = document.getElementById('fullscreen-overlay');
+      const video = document.getElementById('fullscreen-video');
+      
+      // Close modal first if open
+      closeRecordingModal();
+      
+      video.src = mp4Url;
+      overlay.style.display = 'flex';
+      
+      video.addEventListener('loadedmetadata', () => {
+        console.log("✅ Fullscreen recording loaded");
+        video.play().catch(e => console.log("Autoplay prevented"));
+      });
+      
+      video.addEventListener('error', (e) => {
+        console.error('Fullscreen video error:', e);
+        alert(`Error loading recording: ${filename}`);
+        exitFullscreen();
+      });
+    };
+
+    async function loadLiveStreams() {
+      try {
+        const response = await fetch('/live.json');
+        const streams = await response.json();
+        const liveDiv = document.getElementById('live');
+        
+        if (streams.length === 0) {
+          liveDiv.innerHTML = '<div class="no-content">No live streams available</div>';
+          return;
+        }
+        
+        liveDiv.innerHTML = '';
+        
+        for (const stream of streams) {
+          const group = document.createElement('div');
+          group.className = 'stream-group';
+          
+          const header = document.createElement('h3');
+          header.innerHTML = `
+            <span class="status-indicator status-live"></span>
+            ${stream.name || stream.streamId}
+          `;
+          group.appendChild(header);
+          
+          const content = document.createElement('div');
+          content.className = 'stream-content';
+          
+          const container = document.createElement('div');
+          container.id = `video_container_${stream.streamId}`;
+          
+          content.appendChild(container);
+          group.appendChild(content);
+          liveDiv.appendChild(group);
+          
+          createLivePlayer(stream.streamId, container);
+        }
+        
+      } catch (error) {
+        console.error('Error loading live streams:', error);
+        document.getElementById('live').innerHTML = 
+          '<div class="error-message">Error loading live streams</div>';
+      }
+    }
+
+    async function loadDashboard() {
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      
+      await loadRecordings();
+      await loadLiveStreams();
+    }
+
+    // Initialize HLS.js on page load
+    loadHLS().catch(console.error);
+
+    // Login handling
+    window.showTab = showTab;
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('loginBtn').onclick = () => {
+        const u = document.getElementById('user').value;
+        const p = document.getElementById('pass').value;
+        if (u === validUser && p === validPass) {
+          window.isLoggedIn = true;
+          loadDashboard();
+        } else {
+          alert('Invalid credentials');
+        }
+      };
+
+      if (window.isLoggedIn) {
+        loadDashboard();
+      } else {
+        document.getElementById('login').style.display = 'block';
+      }
+      
+      document.getElementById('pass').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          document.getElementById('loginBtn').click();
+        }
+      });
+
+      // ESC key to exit fullscreen and close modals
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          exitFullscreen();
+          closeRecordingModal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
